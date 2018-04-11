@@ -53,7 +53,7 @@ class LinearClassifier(object):
       # Hint: Use np.random.choice to generate indices. Sampling with         #
       # replacement is faster than sampling without replacement.              #
       #########################################################################
-      pass
+      X_batch = np.random.choice(
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################

@@ -123,7 +123,10 @@ class KNearestNeighbor(object):
     # HINT: Try to formulate the l2 distance using matrix multiplication    #
     #       and two broadcast sums.                                         #
     #########################################################################
-    pass
+    test_sum = np.sum(np.square(X), axis=1) # num_test x 1
+    train_sum = np.sum(np.square(self.X_train), axis=1) # num_train x 1
+    inner_product = np.dot(X, self.X_train.T) # num_test x num_train
+    dists = np.sqrt(-2 * inner_product + test_sum.reshape(-1, 1) + train_sum) # broadcast
     #########################################################################
     #                         END OF YOUR CODE                              #
     #########################################################################
@@ -155,7 +158,12 @@ class KNearestNeighbor(object):
       # neighbors. Store these labels in closest_y.                           #
       # Hint: Look up the function numpy.argsort.                             #
       #########################################################################
-      closest_y = np.argsort(dists[i])[:k]
+      # print(dists.shape) # 4000, 1000
+      y_indicies = np.argsort(dists[i, :], axis = 0)[:k]
+      # print("y_indice" + str(y_indicies.shape))
+      # print("y_train"+str(self.y_train.shape))
+      closest_y = self.y_train[y_indicies] # closest_y is "label", find most common label
+      # print(closest_y.shape)
       #########################################################################
       # TODO:                                                                 #
       # Now that you have found the labels of the k nearest neighbors, you    #
@@ -163,8 +171,8 @@ class KNearestNeighbor(object):
       # Store this label in y_pred[i]. Break ties by choosing the smaller     #
       # label.                                                                #
       #########################################################################
-      y_idx = np.bincount(closest_y).argmax()
-      y_pred[i] = self.y_train[y_idx]
+      # print(np.bincount(closest_y))
+      y_pred[i] = np.argmax(np.bincount(closest_y)) # find most frequent label
       #########################################################################
       #                           END OF YOUR CODE                            # 
       #########################################################################
