@@ -3,6 +3,43 @@ from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from past.builtins import xrange
+from cs231n.classifiers.linear_classifier import Softmax
+
+def affine_forward(X, W, b):
+  affine_cache = {}
+  affine_cache['X'] = X
+  affine_cache['W'] = W
+  return affine_cache, X.dot(W) + b
+
+def affine_backward(affine_cache, dD, reg):
+  X, W = affine_cache['X'], affine_cache['W']
+  N = X.shape[0]
+  dW = X.T.dot(dD) / N + reg * W
+  dX = dD.dot(W.T)
+  db = np.sum(dD, axis=0) / N
+  return dX, dW, db
+
+def affine_relu_forward(X, W, b):
+  affine_cache, affine_out = affine_forward(X, W, b)
+  relu_cache, relu_out = relu_forward(affine_out)
+  return affine_cache, relu_cache, relu_out
+
+def relu_forward(X):
+  X[X < 0] = 0
+  relu_cache = {}
+  relu_cache['X'] = X
+  return relu_cache, X
+
+def relu_backward(relu_cache):
+  dX = relu_cache['X']
+  dX[dX > 0] = 1
+  dX[dX <= 0] = 0
+  return dX
+
+def affine_relu_backward(affine_cache, relu_cache, dD, reg):
+  dX = relu_backward(relu_cache) * dD
+  dX, dW, db = affine_backward(affine_cache, dX, reg)
+  return dX, dW, db
 
 class TwoLayerNet(object):
   """
@@ -41,6 +78,8 @@ class TwoLayerNet(object):
     self.params['W2'] = std * np.random.randn(hidden_size, output_size)
     self.params['b2'] = np.zeros(output_size)
 
+  
+
   def loss(self, X, y=None, reg=0.0):
     """
     Compute the loss and gradients for a two layer fully connected neural
@@ -76,7 +115,9 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
+    affine_cache, relu_cache, hidden_out = affine_relu_forward(X, W1, b1)
+    score_cache, scores = affine_forward(hidden_out, W2, b2)
+
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -86,14 +127,30 @@ class TwoLayerNet(object):
       return scores
 
     # Compute the loss
-    loss = None
+    scores -= np.max(scores, axis=1, keepdims=True) #(N,K)
+    correct_exp_scores = np.exp(scores[range(N), y]) # (N, 1)
+    exp_scores = np.exp(scores)
+    sum_exp_scores = np.sum(exp_scores, axis=1, keepdims=True) #(N,1)
+    loss = -np.mean(np.log(correct_exp_scores / sum_exp_scores))
+    loss += reg * np.sum(W1 * W1)
+    loss += reg * np.sum(W2 * W2)
+
+
+
+
+
+    # print(loss)
+    # Compute loss gradient
+    probs = exp_scores / sum_exp_scores
+    probs[range(N), y] -= 1 #(N,K)
+    dscores = probs
+
     #############################################################################
     # TODO: Finish the forward pass, and compute the loss. This should include  #
     # both the data loss and L2 regularization for W1 and W2. Store the result  #
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss.                                                          #
     #############################################################################
-    pass
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -105,7 +162,8 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    pass
+    dX, grads['W2'], grads['b2'] = affine_backward(score_cache, dscores, reg)
+    dX, grads['W1'], grads['b1'] = affine_relu_backward(affine_cache, relu_cache, dX, reg)
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -149,7 +207,9 @@ class TwoLayerNet(object):
       # TODO: Create a random minibatch of training data and labels, storing  #
       # them in X_batch and y_batch respectively.                             #
       #########################################################################
-      pass
+      idxs = np.random.choice(range(num_train), batch_size)
+      X_batch = X[idxs, :]
+      y_batch = y[idxs]
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -164,7 +224,10 @@ class TwoLayerNet(object):
       # using stochastic gradient descent. You'll need to use the gradients   #
       # stored in the grads dictionary defined above.                         #
       #########################################################################
-      pass
+      self.params['W1'] -= grads['W1'] * learning_rate
+      self.params['W2'] -= grads['W2'] * learning_rate
+      self.params['b1'] -= grads['b1'] * learning_rate
+      self.params['b2'] -= grads['b2'] * learning_rate
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -209,7 +272,9 @@ class TwoLayerNet(object):
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
-    pass
+    affine_cache, relu_cache, hidden_out = affine_relu_forward(X, self.params['W1'], self.params['b1'])
+    score_cache, scores = affine_forward(hidden_out, self.params['W2'], self.params['b2'])
+    y_pred = np.argmax(scores, axis=1)
     ###########################################################################
     #                              END OF YOUR CODE                           #
     ###########################################################################

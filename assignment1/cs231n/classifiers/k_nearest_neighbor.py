@@ -158,12 +158,8 @@ class KNearestNeighbor(object):
       # neighbors. Store these labels in closest_y.                           #
       # Hint: Look up the function numpy.argsort.                             #
       #########################################################################
-      # print(dists.shape) # 4000, 1000
       y_indicies = np.argsort(dists[i, :], axis = 0)[:k]
-      # print("y_indice" + str(y_indicies.shape))
-      # print("y_train"+str(self.y_train.shape))
       closest_y = self.y_train[y_indicies] # closest_y is "label", find most common label
-      # print(closest_y.shape)
       #########################################################################
       # TODO:                                                                 #
       # Now that you have found the labels of the k nearest neighbors, you    #
@@ -171,7 +167,6 @@ class KNearestNeighbor(object):
       # Store this label in y_pred[i]. Break ties by choosing the smaller     #
       # label.                                                                #
       #########################################################################
-      # print(np.bincount(closest_y))
       y_pred[i] = np.argmax(np.bincount(closest_y)) # find most frequent label
       #########################################################################
       #                           END OF YOUR CODE                            # 
