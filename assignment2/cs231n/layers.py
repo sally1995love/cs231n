@@ -20,16 +20,18 @@ def affine_forward(x, w, b):
     - out: output, of shape (N, M)
     - cache: (x, w, b)
     """
+    cache = (x, w, b)
     out = None
+    N = x.shape[0]
     ###########################################################################
     # TODO: Implement the affine forward pass. Store the result in out. You   #
     # will need to reshape the input into rows.                               #
     ###########################################################################
-    pass
+    x = x.reshape(N, -1)
+    out = x.dot(w) + b
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
-    cache = (x, w, b)
     return out, cache
 
 
@@ -53,7 +55,13 @@ def affine_backward(dout, cache):
     ###########################################################################
     # TODO: Implement the affine backward pass.                               #
     ###########################################################################
-    pass
+    N = x.shape[0]
+    dx = dout.dot(w.T)
+    dx = dx.reshape(*x.shape)
+    print(dx.shape)
+    x = x.reshape(N, -1)
+    dw = x.T.dot(dout)
+    db = np.sum(dout, axis=0)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -75,11 +83,15 @@ def relu_forward(x):
     ###########################################################################
     # TODO: Implement the ReLU forward pass.                                  #
     ###########################################################################
-    pass
+    
+    mask_x = x.copy()
+    mask_x[x < 0] = 0
+    mask_x[x > 0] = 1
+    out = mask_x * x
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
-    cache = x
+    cache = mask_x
     return out, cache
 
 
@@ -94,11 +106,11 @@ def relu_backward(dout, cache):
     Returns:
     - dx: Gradient with respect to x
     """
-    dx, x = None, cache
+    dx, mask_x = None, cache
     ###########################################################################
     # TODO: Implement the ReLU backward pass.                                 #
     ###########################################################################
-    pass
+    dx = dout * mask_x
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -284,7 +296,8 @@ def dropout_forward(x, dropout_param):
         # TODO: Implement training phase forward pass for inverted dropout.   #
         # Store the dropout mask in the mask variable.                        #
         #######################################################################
-        pass
+        mask = (np.random.rand(*x.shape) < p) / p
+        out = x * mask
         #######################################################################
         #                           END OF YOUR CODE                          #
         #######################################################################
@@ -292,7 +305,7 @@ def dropout_forward(x, dropout_param):
         #######################################################################
         # TODO: Implement the test phase forward pass for inverted dropout.   #
         #######################################################################
-        pass
+        out = x
         #######################################################################
         #                            END OF YOUR CODE                         #
         #######################################################################
@@ -319,7 +332,7 @@ def dropout_backward(dout, cache):
         #######################################################################
         # TODO: Implement training phase backward pass for inverted dropout   #
         #######################################################################
-        pass
+        dx = dout * mask
         #######################################################################
         #                          END OF YOUR CODE                           #
         #######################################################################
@@ -403,11 +416,14 @@ def max_pool_forward_naive(x, pool_param):
     - out: Output data
     - cache: (x, pool_param)
     """
+    height, width, stride = pool_param['pool_height'], pool_param['pool_width'], pool_param['stride']
     out = None
     ###########################################################################
     # TODO: Implement the max pooling forward pass                            #
     ###########################################################################
-    pass
+    h, w = 0, 0
+    # for i in range(N):
+    #     while h_i < 
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
